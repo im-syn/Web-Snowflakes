@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Snowflakes</title>
+    </head>
+        
+    <body style="background-color: rgb(50, 54, 68);">
+        <h2 style="font-family: 'Courier New', Courier, monospace;font-size:xx-large; font-style: initial;color: #888;">MADE BY SYN - github: im-syn :)<h2>
+
+
+
+        <!-- PUT THE FOLLOWING CSS CODE AND JS IN UR PAGE :) -->
+         <!--  Dont forget to add these two divs too!-->
+        <div class="let-snow-toggle" id="toggleSnow">Snow: ON</div>
+        <div class="snow-ground" id="snowGround"></div>
+
+        <style>
+            /* Snowflake animation */
+            @keyframes snow0 {
+                0% {
+                    transform: translateY(0) translateX(0);
+                    opacity: 1;
+                }
+        
+                100% {
+                    transform: translateY(100vh) translateX(var(--wind-effect, 0px));
+                    opacity: 0;
+                }
+            }
+        
+            /* Snowflake styles */
+            .let-snow {
+                position: fixed;
+                top: 0;
+                width: 10px;
+                height: 10px;
+                background: white;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9998;
+                opacity: 0.8;
+                animation: snow0 var(--duration, 10s) linear infinite;
+            }
+        
+            /* Snow ground styles */
+            .snow-ground {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: var(--ground-height, 200);
+                background: white;
+                border-radius: 50% / 10%;
+                z-index: 9996;
+                pointer-events: none;
+                transition: height 1s ease-out;
+                background: url('https://swp.freewebhostmost.com/assets/images/snow_g.png'), linear-gradient(to top, #ffffff 20%, rgba(255, 255, 255, 0) 100%);
+            }
+        
+            /* Custom cursor for snow ground hover */
+            body {
+                cursor: url('https://swp.freewebhostmost.com/assets/images/santa_32.png') 16 16, auto;
+            }
+        
+            .let-snow-toggle {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                padding: 4px 8px;
+                margin: 8px;
+                background: white;
+                color: black;
+                cursor: pointer;
+                border: 1px solid #888;
+                border-radius: 99px;
+                opacity: 0.8;
+                box-shadow: 0 0 5px white;
+                transition: opacity 0.2s;
+                user-select: none;
+                z-index: 9999;
+            }
+        
+            .let-snow-toggle:hover {
+                opacity: 1;
+            }
+        </style>
+        
+        <script>
+            let snowEnabled = true;
+            let snowflakeCount = 0;
+            const maxSnowflakes = 60;
+            let groundHeight = 0;
+            const maxGroundHeight = 150; // Max height for the snow ground (above the button)
+            const windSound = new Audio('https://swp.freewebhostmost.com/assets/audio/wind_1.mp3'); // Wind sound URL: maybe this will be deleted , so put urs here ;)
+            windSound.loop = true;
+            windSound.volume = 0.02; // Start with a very low volume
+            const snowGround_MaxHight = 40
+
+
+            function createSnowflake() {
+                if (!snowEnabled || snowflakeCount >= maxSnowflakes) return;
+
+                const snowflake = document.createElement("i");
+                snowflake.classList.add("let-snow");
+                document.body.appendChild(snowflake);
+                snowflakeCount++;
+
+                // Set random properties for snowflakes
+                const size = Math.random() * 7 + 1;  // Random size between 5px and 20px
+                const duration = Math.random() * 5 + 5; // Between 5 and 10 seconds
+                const windEffect = Math.random() * 40 - 20; // Horizontal shift (-20px to 20px)
+
+                snowflake.style.width = `${size}px`;
+                snowflake.style.height = `${size}px`;
+                snowflake.style.left = `${Math.random() * window.innerWidth}px`;
+                snowflake.style.setProperty("--duration", `${duration}s`);
+                snowflake.style.setProperty("--wind-effect", `${windEffect}px`);
+
+                // Remove snowflake after animation and update ground
+                snowflake.addEventListener("animationend", () => {
+                    snowflake.remove();
+                    snowflakeCount--;
+                    updateSnowGround();
+                });
+            }
+
+            function updateSnowGround() {
+                const snowGround = document.getElementById("snowGround");
+                console.log("groundHeight: " + groundHeight);
+                console.log("maxGroundHeight: " + maxGroundHeight);
+                // Stop increasing ground height once the limit is reached
+                if (groundHeight < maxGroundHeight) {
+                    if (groundHeight != snowGround_MaxHight) {
+                        groundHeight += 5;
+                        snowGround.style.setProperty("--ground-height", `${groundHeight}px`);
+                    }
+                }
+            }
+
+            function clearAll() {
+                document.querySelectorAll(".let-snow").forEach(el => el.remove());
+                snowflakeCount = 0;
+            }
+
+            // Function to gradually start the wind sound after a delay
+            function startWindSound() {
+                setTimeout(() => {
+                    windSound.play(); // Play the wind sound after 2 seconds delay
+                }, 60); // 2 seconds delay before starting the wind sound
+            }
+
+            // Initial wind sound start
+            if (snowEnabled) {
+                startWindSound();
+            }
+
+            // Function to stop the wind sound when snow effect is disabled
+            function stopWindSound() {
+                windSound.pause(); // Stop the sound when snow is disabled
+                windSound.currentTime = 0; // Reset the sound to the beginning
+            }
+
+            // Toggle snow effect
+            document.getElementById("toggleSnow").addEventListener("click", () => {
+                snowEnabled = !snowEnabled;
+                document.getElementById("toggleSnow").innerText = `Snow: ${snowEnabled ? "ON" : "OFF"}`;
+
+                if (!snowEnabled) {
+                    clearAll();
+                    // Hide snow ground when snow is off
+                    document.getElementById("snowGround").style.display = "none";
+                    stopWindSound(); // Stop the wind sound when snow is off
+                } else {
+                    // Show snow ground when snow is turned on
+                    document.getElementById("snowGround").style.display = "block";
+                    startWindSound(); // Start the wind sound when snow is turned on
+                }
+            });
+
+            // Generate snowflakes every 200ms
+            setInterval(() => {
+                createSnowflake();
+            }, 200); // Every 200ms for smoother snowflakes
+
+            // Update ground height every 9 seconds 
+            setInterval(() => {
+                if (snowEnabled) {
+                    if (groundHeight == maxGroundHeight) {
+                    } else {
+                        updateSnowGround();
+                    }
+                }
+            }, 9000); // Every 9 seconds - to make it every 10 seconds > 10000
+        </script>
+    <!--   Copy all script above until u reach comment: "Copy all script down below" -->
+
+    </body>
+
+</html>
